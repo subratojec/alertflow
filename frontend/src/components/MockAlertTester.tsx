@@ -72,10 +72,11 @@ const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate })
          }
       }
 
-      const res = await fetch('http://localhost:8080/simulate', {
+      const res = await fetch('/api/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config, alerts: alertsPayload, time: timePayload })
+        body: JSON.stringify({ config, alerts: alertsPayload, time: timePayload }),
+        signal: AbortSignal.timeout(5000)
       });
       if (res.ok) {
         const data = await res.json();

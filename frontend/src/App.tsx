@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import Visualizer from './components/Visualizer';
 import Editor from './components/Editor';
 import MockAlertTester from './components/MockAlertTester';
+
+interface Message {
+  line?: number;
+  message: string;
+}
 const DEMO_CONFIG = `global:
   resolve_timeout: 5m
 
@@ -39,16 +44,17 @@ receivers:
 
 time_intervals:
 - name: weekend-maintenance
-  time_intervals:
+  intervals:
   - weekdays: ['saturday', 'sunday']
 `;
 
 const App = () => {
   const [config, setConfig] = useState<string>(DEMO_CONFIG);
-  const [treeData, setTreeData] = useState<any>(null);
-  const [simulationData, setSimulationData] = useState<any>(null);
-  const [errors, setErrors] = useState<any[]>([]);
-  const [warnings, setWarnings] = useState<any[]>([]);
+  const [treeData, setTreeData] = useState<Record<string, any> | null>(null);
+  const [simulationData, setSimulationData] = useState<Record<string, any> | null>(null);
+  const [errors, setErrors] = useState<Message[]>([]);
+  const [warnings, setWarnings] = useState<Message[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [redacted, setRedacted] = useState(false);
   const [jumpTarget, setJumpTarget] = useState<string | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(450);
@@ -77,36 +83,54 @@ const App = () => {
     }
 
     const fetchTree = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       try {
-        const vRes = await fetch('http://localhost:8080/validate', {
-           method: 'POST', body: config
+        setFetchError(null);
+        let payload = config;
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        if (emailRegex.test(payload)) {
+          payload = payload.replace(emailRegex, '[REDACTED_EMAIL]');
+          setRedacted(true);
+        } else {
+          setRedacted(false);
+        }
+
+        const vRes = await fetch('/api/validate', {
+           method: 'POST', body: payload, signal: controller.signal
         });
         if (vRes.ok) {
            const vData = await vRes.json();
            setErrors(vData.errors || []);
            setWarnings(vData.warnings || []);
         } else {
-           setErrors([{ message: 'Failed to validate config' }]);
+           setErrors([{ message: `Failed to validate config: ${vRes.statusText}` }]);
            setWarnings([]);
         }
 
-        const res = await fetch('http://localhost:8080/tree', {
+        const res = await fetch('/api/tree', {
           method: 'POST',
-          body: config,
+          body: payload,
+          signal: controller.signal
         });
         if (res.ok) {
           const data = await res.json();
           setTreeData(data);
         } else {
           setTreeData(null);
+          setFetchError(`Server returned ${res.status}: ${res.statusText}`);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch tree:", err);
+        setFetchError(err.name === 'AbortError' ? 'Request timed out' : 'Network error or server unreachable');
+        setTreeData(null);
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
     
-    const timeoutId = setTimeout(fetchTree, 500);
-    return () => clearTimeout(timeoutId);
+    const debounceId = setTimeout(fetchTree, 500);
+    return () => clearTimeout(debounceId);
   }, [config]);
 
   // Handle resetting simulation when config changes
@@ -115,12 +139,6 @@ const App = () => {
   }, [config]);
 
   const handleConfigChange = (val: string) => {
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    if (emailRegex.test(val)) {
-      val = val.replace(emailRegex, '[REDACTED_EMAIL]');
-      setRedacted(true);
-      setTimeout(() => setRedacted(false), 3000);
-    }
     setConfig(val);
   };
 
@@ -166,8 +184,13 @@ const App = () => {
             </div>
           </div>
 
-          {(errors.length > 0 || warnings.length > 0) && (
+          {(errors.length > 0 || warnings.length > 0 || fetchError) && (
             <div style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--bg-panel-border)', padding: '16px 20px', maxHeight: '150px', overflowY: 'auto' }}>
+               {fetchError && (
+                 <div style={{ marginBottom: '8px', color: 'var(--status-critical)', fontSize: '13px', fontWeight: 600 }}>
+                   {fetchError}
+                 </div>
+               )}
                {errors.length > 0 && (
                  <ul style={{ margin: '0 0 8px 0', paddingLeft: '20px', color: 'var(--status-critical)', fontSize: '13px' }}>
                     {errors.map((e, i) => <li key={i} style={{ marginBottom: '4px' }}>{e.message}</li>)}
