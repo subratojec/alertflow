@@ -159,7 +159,7 @@ const App = () => {
           <Visualizer data={treeData} simulation={simulationData} onNodeClick={handleNodeClick} />
           
           {/* Floating Mock Tester Panel */}
-          <div className="glass-panel" style={{ position: 'absolute', top: '24px', right: '24px', width: '380px', zIndex: 20 }}>
+          <div style={{ position: 'absolute', top: '24px', right: '24px', maxWidth: 'calc(100% - 48px)', zIndex: 20 }}>
             <MockAlertTester config={config} onSimulate={setSimulationData} />
           </div>
         </div>

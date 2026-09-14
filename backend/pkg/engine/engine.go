@@ -2,9 +2,12 @@ package engine
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/alertmanager/dispatch"
+	"github.com/prometheus/alertmanager/pkg/labels"
+	"github.com/prometheus/alertmanager/timeinterval"
 	"github.com/prometheus/common/model"
 )
 
@@ -98,8 +101,8 @@ func (e *Engine) BuildTree(yamlContent string) (*RouteNode, error) {
 		return nil, fmt.Errorf("no root route defined")
 	}
 
-	var convertRoute func(r *config.Route, prefix string, idx int) *RouteNode
-	convertRoute = func(r *config.Route, prefix string, idx int) *RouteNode {
+	var convertRoute func(r *config.Route, prefix string, idx int, inheritedReceiver string) *RouteNode
+	convertRoute = func(r *config.Route, prefix string, idx int, inheritedReceiver string) *RouteNode {
 		id := childID(prefix, idx)
 
 		matchers := effectiveMatchers(r)
@@ -113,6 +116,7 @@ func (e *Engine) BuildTree(yamlContent string) (*RouteNode, error) {
 			ID:                  id,
 			Matchers:            matchers,
 			Receiver:            r.Receiver,
+			InheritedReceiver:   inheritedReceiver,
 			Continue:            r.Continue,
 			GroupBy:             groupby,
 			GroupByAll:          r.GroupByAll,
@@ -132,15 +136,22 @@ func (e *Engine) BuildTree(yamlContent string) (*RouteNode, error) {
 			node.RepeatInterval = r.RepeatInterval.String()
 		}
 
+		nextInherited := r.Receiver
+		if nextInherited == "" {
+			nextInherited = inheritedReceiver
+		}
+
 		for i, child := range r.Routes {
-			node.Children = append(node.Children, convertRoute(child, id, i+1))
+			node.Children = append(node.Children, convertRoute(child, id, i+1, nextInherited))
 		}
 
 		return node
 	}
 
-	return convertRoute(cfg.Route, "", 0), nil
+	return convertRoute(cfg.Route, "", 0, ""), nil
 }
+
+
 
 // Simulate runs an alert through the route tree to determine matching receivers.
 func (e *Engine) Simulate(req SimulateRequest) (*SimulateResponse, error) {
@@ -152,85 +163,168 @@ func (e *Engine) Simulate(req SimulateRequest) (*SimulateResponse, error) {
 		return nil, fmt.Errorf("no root route defined in config")
 	}
 
-	lbls := make(model.LabelSet)
-	for k, v := range req.Alert {
-		lbls[model.LabelName(k)] = model.LabelValue(v)
+	simTime := time.Now()
+	if req.Time != "" {
+		t, err := time.Parse(time.RFC3339, req.Time)
+		if err == nil {
+			simTime = t
+		}
 	}
 
-	// Convert the config.Route into a dispatch.Route which implements the matching logic.
-	route := dispatch.NewRoute(cfg.Route, nil)
-
-	var matches []RouteMatch
-	var receivers []string
-
-	var walk func(r *dispatch.Route, id string) (bool, bool)
-	walk = func(r *dispatch.Route, id string) (bool, bool) {
-		if !r.Matchers.Matches(lbls) {
-			return false, false
+	var alertSets []model.LabelSet
+	for _, a := range req.Alerts {
+		lbls := make(model.LabelSet)
+		for k, v := range a {
+			lbls[model.LabelName(k)] = model.LabelValue(v)
 		}
+		alertSets = append(alertSets, lbls)
+	}
 
-		childMatched := false
-		for i, child := range r.Routes {
-			cMatch, _ := walk(child, childID(id, i+1))
-			if cMatch {
-				childMatched = true
-				if !child.Continue {
-					break // First match wins if not continue
+	inhibited := make([]bool, len(alertSets))
+	inhibitedBy := make([]string, len(alertSets))
+
+	for i, target := range alertSets {
+		for j, source := range alertSets {
+			if i == j {
+				continue
+			}
+			for _, rule := range cfg.InhibitRules {
+				if !labels.Matchers(rule.SourceMatchers).Matches(source) {
+					continue
+				}
+				if !labels.Matchers(rule.TargetMatchers).Matches(target) {
+					continue
+				}
+				equal := true
+				for _, ln := range rule.Equal {
+					if source[model.LabelName(ln)] != target[model.LabelName(ln)] {
+						equal = false
+						break
+					}
+				}
+				if equal {
+					inhibited[i] = true
+					inhibitedBy[i] = fmt.Sprintf("Alert %d", j+1)
+					break
 				}
 			}
+			if inhibited[i] {
+				break
+			}
+		}
+	}
+
+	route := dispatch.NewRoute(cfg.Route, nil)
+
+	timeIntervals := make(map[string][]timeinterval.TimeInterval)
+	for _, ti := range cfg.TimeIntervals {
+		timeIntervals[ti.Name] = ti.TimeIntervals
+	}
+
+	var results []AlertSimulationResult
+
+	for i, lbls := range alertSets {
+		var matches []RouteMatch
+		var receivers []string
+		muted := false
+		var mutedBy []string
+
+		var walk func(r *dispatch.Route, id string) (bool, bool)
+		walk = func(r *dispatch.Route, id string) (bool, bool) {
+			if !r.Matchers.Matches(lbls) {
+				return false, false
+			}
+
+			childMatched := false
+			for j, child := range r.Routes {
+				cMatch, _ := walk(child, childID(id, j+1))
+				if cMatch {
+					childMatched = true
+					if !child.Continue {
+						break
+					}
+				}
+			}
+
+			terminal := !childMatched
+			if terminal {
+				receivers = append(receivers, r.RouteOpts.Receiver)
+				
+				for _, muteName := range r.RouteOpts.MuteTimeIntervals {
+					if intervals, ok := timeIntervals[muteName]; ok {
+						for _, interval := range intervals {
+							if interval.ContainsTime(simTime) {
+								muted = true
+								mutedBy = append(mutedBy, muteName)
+								break
+							}
+						}
+					}
+				}
+			}
+
+			matches = append(matches, RouteMatch{
+				RouteID:  id,
+				Matched:  true,
+				Continue: r.Continue,
+				Terminal: terminal,
+			})
+
+			return true, terminal
 		}
 
-		terminal := !childMatched
-		if terminal {
-			receivers = append(receivers, r.RouteOpts.Receiver)
+		walk(route, "root")
+
+		for k := 0; k < len(matches)/2; k++ {
+			j := len(matches) - k - 1
+			matches[k], matches[j] = matches[j], matches[k]
 		}
 
-		matches = append(matches, RouteMatch{
-			RouteID:  id,
-			Matched:  true,
-			Continue: r.Continue,
-			Terminal: terminal,
+		uniqueReceivers := make(map[string]bool)
+		var finalReceivers []string
+		for _, rec := range receivers {
+			if !uniqueReceivers[rec] {
+				uniqueReceivers[rec] = true
+				finalReceivers = append(finalReceivers, rec)
+			}
+		}
+		
+		if inhibited[i] || muted {
+			finalReceivers = []string{}
+		}
+
+		explanation := ""
+		for k, m := range matches {
+			if k > 0 {
+				explanation += " -> "
+			}
+			term := ""
+			if m.Terminal {
+				term = " (terminal)"
+			}
+			explanation += fmt.Sprintf("%s%s", m.RouteID, term)
+		}
+		if len(finalReceivers) > 0 {
+			explanation += fmt.Sprintf(". Notified: %v", finalReceivers)
+		} else if inhibited[i] {
+			explanation += fmt.Sprintf(". Suppressed by Inhibit Rule (Source: %s)", inhibitedBy[i])
+		} else if muted {
+			explanation += fmt.Sprintf(". Suppressed by Time Mute: %v", mutedBy)
+		}
+
+		results = append(results, AlertSimulationResult{
+			Labels:            req.Alerts[i],
+			MatchedRoutes:     matches,
+			ReceiversNotified: finalReceivers,
+			Inhibited:         inhibited[i],
+			InhibitedBy:       inhibitedBy[i],
+			Muted:             muted,
+			MutedBy:           mutedBy,
+			Explanation:       explanation,
 		})
-
-		return true, terminal
-	}
-
-	walk(route, "root")
-
-	// Reverse the matches list because it was populated post-order
-	for i := 0; i < len(matches)/2; i++ {
-		j := len(matches) - i - 1
-		matches[i], matches[j] = matches[j], matches[i]
-	}
-
-	// Deduplicate receivers just in case
-	uniqueReceivers := make(map[string]bool)
-	var finalReceivers []string
-	for _, rec := range receivers {
-		if !uniqueReceivers[rec] {
-			uniqueReceivers[rec] = true
-			finalReceivers = append(finalReceivers, rec)
-		}
-	}
-
-	explanation := ""
-	for i, m := range matches {
-		if i > 0 {
-			explanation += " -> "
-		}
-		term := ""
-		if m.Terminal {
-			term = " (terminal)"
-		}
-		explanation += fmt.Sprintf("%s%s", m.RouteID, term)
-	}
-	if len(finalReceivers) > 0 {
-		explanation += fmt.Sprintf(". Notified: %v", finalReceivers)
 	}
 
 	return &SimulateResponse{
-		MatchedRoutes:     matches,
-		ReceiversNotified: finalReceivers,
-		Explanation:       explanation,
+		Results: results,
 	}, nil
 }

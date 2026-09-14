@@ -80,8 +80,11 @@ body {
 .node-card.matched {
   border-color: var(--color-matched);
   border-width: 3px;
-  box-shadow: 0 0 35px var(--color-matched-glow);
   transform: translateY(-2px);
+}
+
+.node-card.terminal {
+  box-shadow: 0 0 35px var(--color-matched-glow);
 }
 
 .node-header {
@@ -112,6 +115,15 @@ body {
 .badge-continue {
   background: var(--bg-node-translucent-strong);
   color: var(--text-node);
+}
+
+.badge-prop {
+  background: var(--bg-node-translucent);
+  color: var(--text-node-muted);
+  border: 1px solid var(--bg-node-border);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: none;
 }
 
 .node-body {

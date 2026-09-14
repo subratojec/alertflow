@@ -13,7 +13,7 @@ interface VisualizerProps {
 
 const RouteNodeComponent = ({ data }: any) => {
   return (
-    <div className={`node-card ${data.isMatched ? 'matched' : ''}`} style={{ width: '380px' }}>
+    <div className={`node-card ${data.isMatched ? 'matched' : ''} ${data.isTerminal ? 'terminal' : ''}`} style={{ width: '380px' }}>
       <Handle type="target" position={Position.Top} style={{ background: 'transparent', border: 'none' }} />
       
       <div className="node-header" style={{ cursor: 'pointer' }} onClick={() => data.onNodeClick && data.onNodeClick(data)}>
@@ -21,7 +21,12 @@ const RouteNodeComponent = ({ data }: any) => {
           <GitMerge size={14} style={{ color: 'var(--text-muted)' }} />
           <span className="node-title">{data.id === 'root' ? 'ROOT ROUTE' : `ROUTE (${data.id})`}</span>
         </div>
-        {data.continue && <span className="node-badge badge-continue">CONTINUE</span>}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {data.isTerminal && !data.isMuted && !data.isInhibited && <span className="node-badge" style={{ background: 'var(--color-matched)', color: '#fff' }}>TERMINAL</span>}
+          {data.isTerminal && data.isMuted && <span className="node-badge" style={{ background: 'var(--status-warning)', color: '#000' }}>MUTED</span>}
+          {data.isTerminal && data.isInhibited && <span className="node-badge" style={{ background: 'var(--status-critical)', color: '#fff' }}>INHIBITED</span>}
+          {data.continue && <span className="node-badge badge-continue">CONTINUE</span>}
+        </div>
       </div>
 
       <div className="node-body">
@@ -37,7 +42,23 @@ const RouteNodeComponent = ({ data }: any) => {
 
         <div className="receiver-box" style={{ cursor: 'pointer' }} onClick={() => data.onNodeClick && data.onNodeClick(data)}>
            <ShieldAlert size={14} style={{ color: 'var(--text-muted)' }} />
-           <span className="receiver-name">{data.receiver || '(Inherited / None)'}</span>
+           <span className="receiver-name">{data.receiver ? data.receiver : (data.inherited_receiver ? `(Inherited / ${data.inherited_receiver})` : '(Inherited / None)')}</span>
+        </div>
+        
+        {/* Additional Properties */}
+        <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {data.mute_time_intervals && data.mute_time_intervals.length > 0 && (
+            <span className="node-badge badge-prop">Mutes: {data.mute_time_intervals.join(', ')}</span>
+          )}
+          {data.active_time_intervals && data.active_time_intervals.length > 0 && (
+            <span className="node-badge badge-prop">Active: {data.active_time_intervals.join(', ')}</span>
+          )}
+          {data.group_by && data.group_by.length > 0 && (
+            <span className="node-badge badge-prop">Group By: {data.group_by.join(', ')}</span>
+          )}
+          {data.group_wait && <span className="node-badge badge-prop">Wait: {data.group_wait}</span>}
+          {data.group_interval && <span className="node-badge badge-prop">Interval: {data.group_interval}</span>}
+          {data.repeat_interval && <span className="node-badge badge-prop">Repeat: {data.repeat_interval}</span>}
         </div>
         
         {data.hasChildren && (
@@ -116,25 +137,30 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
     const ns: Node[] = [];
     const es: Edge[] = [];
     
-    const matchedSet = new Set<string>();
+    const matchedNodes = new Map<string, any>();
     if (simulation && simulation.matched_routes) {
        simulation.matched_routes.forEach((m: any) => {
           if (m.matched) {
-             matchedSet.add(m.route_id);
+             matchedNodes.set(m.route_id, m);
           }
        });
     }
 
     const traverse = (node: any) => {
-       const isMatched = matchedSet.has(node.id);
+       const matchInfo = matchedNodes.get(node.id);
+       const isMatched = !!matchInfo;
+       const isTerminal = matchInfo?.terminal || false;
        const hasChildren = node.children && node.children.length > 0;
        const isCollapsed = collapsedNodes.has(node.id);
        
+       const isInhibited = simulation?.inhibited || false;
+       const isMuted = simulation?.muted || false;
+
        ns.push({
           id: node.id,
           type: 'routeNode',
           position: { x: 0, y: 0 },
-          data: { ...node, isMatched, hasChildren, isCollapsed, toggleCollapse, onNodeClick }
+          data: { ...node, isMatched, isTerminal, hasChildren, isCollapsed, toggleCollapse, onNodeClick, isInhibited, isMuted }
        });
        
        if (hasChildren && !isCollapsed) {
@@ -143,7 +169,7 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
              traverse(child);
              
              const edgeId = `${node.id}->${child.id}`;
-             const edgeMatched = isMatched && matchedSet.has(child.id); 
+             const edgeMatched = isMatched && matchedNodes.has(child.id); 
              
              es.push({
                 id: edgeId,

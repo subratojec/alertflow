@@ -18,6 +18,7 @@ type RouteNode struct {
 	ID                  string       `json:"id"`
 	Matchers            []string     `json:"matchers"`
 	Receiver            string       `json:"receiver"`
+	InheritedReceiver   string       `json:"inherited_receiver,omitempty"`
 	Continue            bool         `json:"continue"`
 	GroupBy             []string     `json:"group_by"`
 	GroupByAll          bool         `json:"group_by_all"`
@@ -29,10 +30,10 @@ type RouteNode struct {
 	Children            []*RouteNode `json:"children,omitempty"`
 }
 
-// SimulateRequest represents a request to simulate routing an alert.
 type SimulateRequest struct {
-	Config string            `json:"config"`
-	Alert  map[string]string `json:"alert"` // map of label names to label values
+	Config string              `json:"config"`
+	Alerts []map[string]string `json:"alerts"`
+	Time   string              `json:"time,omitempty"`
 }
 
 // RouteMatch represents a route matched during simulation.
@@ -43,12 +44,20 @@ type RouteMatch struct {
 	Terminal bool   `json:"terminal"`
 }
 
+// AlertSimulationResult represents the result for a single alert in a batch simulation.
+type AlertSimulationResult struct {
+	Labels            map[string]string `json:"labels"`
+	MatchedRoutes     []RouteMatch      `json:"matched_routes"`
+	ReceiversNotified []string          `json:"receivers_notified"`
+	Inhibited         bool              `json:"inhibited"`
+	InhibitedBy       string            `json:"inhibited_by,omitempty"`
+	Muted             bool              `json:"muted"`
+	MutedBy           []string          `json:"muted_by,omitempty"`
+	GroupingKey       []string          `json:"grouping_key,omitempty"`
+	Explanation       string            `json:"explanation"`
+}
+
 // SimulateResponse represents the result of a simulation.
 type SimulateResponse struct {
-	MatchedRoutes     []RouteMatch `json:"matched_routes"`
-	ReceiversNotified []string     `json:"receivers_notified"`
-	Inhibited         bool         `json:"inhibited"`
-	InhibitedBy       string       `json:"inhibited_by,omitempty"`
-	GroupingKey       []string     `json:"grouping_key,omitempty"`
-	Explanation       string       `json:"explanation"`
+	Results []AlertSimulationResult `json:"results"`
 }
