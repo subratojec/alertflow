@@ -1,4 +1,4 @@
-# 🚨 AlertFlow
+# <img src="./frontend/public/logo.svg" width="40" align="center" /> AlertFlow
 
 **A visual simulator and CI/CD testing engine for Prometheus Alertmanager configurations.**
 
