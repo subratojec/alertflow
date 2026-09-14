@@ -44,7 +44,7 @@ receivers:
 
 time_intervals:
 - name: weekend-maintenance
-  intervals:
+  time_intervals:
   - weekdays: ['saturday', 'sunday']
 `;
 
