@@ -23,7 +23,7 @@ AlertFlow is distributed via Docker with heavily optimized, multi-stage builds. 
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/alertflow.git
+git clone https://github.com/subratojec/alertflow.git
 cd alertflow
 
 # Boot the frontend and backend instantly in the background

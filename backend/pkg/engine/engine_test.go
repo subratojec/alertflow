@@ -52,21 +52,21 @@ receivers:
 	// Test 1: matches only default
 	res, err := eng.Simulate(SimulateRequest{
 		Config: yamlContent,
-		Alert: map[string]string{"alertname": "Test", "team": "backend"},
+		Alerts: []map[string]string{{"alertname": "Test", "team": "backend"}},
 	})
 	assert.NoError(t, err)
-	assert.Contains(t, res.ReceiversNotified, "default-receiver")
-	assert.NotContains(t, res.ReceiversNotified, "frontend-pager")
+	assert.Contains(t, res.Results[0].ReceiversNotified, "default-receiver")
+	assert.NotContains(t, res.Results[0].ReceiversNotified, "frontend-pager")
 
 	// Test 2: matches frontend (continue: true) and then doesn't match critical
 	res2, err := eng.Simulate(SimulateRequest{
 		Config: yamlContent,
-		Alert: map[string]string{"alertname": "Test", "team": "frontend"},
+		Alerts: []map[string]string{{"alertname": "Test", "team": "frontend"}},
 	})
 	assert.NoError(t, err)
 	// Should hit frontend-pager. Wait, continue=true means it goes to the NEXT sibling.
 	// Will it hit default-receiver? No, if a child matches and continues, it evaluates siblings. If none match, is default-receiver notified?
 	// Actually, Alertmanager's dispatch logic: if any child matches, the parent's receiver is NOT notified, unless the child has continue:true AND no sibling matched? Wait. 
 	// The simulator returns receivers notified. Let's see what Alertmanager actually does.
-	assert.Contains(t, res2.ReceiversNotified, "frontend-pager")
+	assert.Contains(t, res2.Results[0].ReceiversNotified, "frontend-pager")
 }

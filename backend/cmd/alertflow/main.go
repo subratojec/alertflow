@@ -94,16 +94,21 @@ var diffCmd = &cobra.Command{
 
 		diffsFound := false
 		for i, alert := range sampleAlerts {
-			oldRes, err1 := eng.Simulate(engine.SimulateRequest{Config: string(oldContent), Alert: alert})
-			newRes, err2 := eng.Simulate(engine.SimulateRequest{Config: string(newContent), Alert: alert})
+			oldRes, err1 := eng.Simulate(engine.SimulateRequest{Config: string(oldContent), Alerts: []map[string]string{alert}})
+			newRes, err2 := eng.Simulate(engine.SimulateRequest{Config: string(newContent), Alerts: []map[string]string{alert}})
 
 			if err1 != nil || err2 != nil {
 				fmt.Printf("Error simulating alert %d: %v / %v\n", i, err1, err2)
 				continue
 			}
 
-			oldRec := oldRes.ReceiversNotified
-			newRec := newRes.ReceiversNotified
+			if len(oldRes.Results) == 0 || len(newRes.Results) == 0 {
+				fmt.Printf("Error: missing simulation results for alert %d\n", i)
+				continue
+			}
+
+			oldRec := oldRes.Results[0].ReceiversNotified
+			newRec := newRes.Results[0].ReceiversNotified
 
 			diff := false
 			if len(oldRec) != len(newRec) {
