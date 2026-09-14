@@ -1,0 +1,12 @@
+<svg width="240" height="240" viewBox="85 35 70 145" xmlns="http://www.w3.org/2000/svg">
+  <!-- North-east facet: bright rust -->
+  <path d="M120,40 L150,120 L120,120 Z" fill="#C4501F"/>
+  <!-- North-west facet: darker rust -->
+  <path d="M120,40 L90,120 L120,120 Z" fill="#8A3E17"/>
+  <!-- South-east facet: light gray -->
+  <path d="M120,120 L150,120 L120,175 Z" fill="#9A9A9A"/>
+  <!-- South-west facet: darker gray -->
+  <path d="M120,120 L90,120 L120,175 Z" fill="#6B6B6B"/>
+  <!-- Center pivot -->
+  <circle cx="120" cy="120" r="10" fill="#FFFCF2" stroke="#2B2B2B" stroke-width="3"/>
+</svg>

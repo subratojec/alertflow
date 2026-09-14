@@ -1,0 +1,176 @@
+:root {
+  /* Waypoint Single Theme: Slate Canvas & Cream Panels with Charcoal Nodes */
+  --bg-space: #403D39;      /* Dark charcoal canvas */
+  --bg-space-dark: #252422; /* Even darker for gradient depth */
+  --bg-panel: #FFFCF2;      /* Bright off-white side panels */
+  --bg-panel-border: #CCC5B9; /* Muted taupe borders for panels */
+  --bg-surface: #403D39;    /* Dark Charcoal node cards */
+  --bg-node-border: #5A5652; /* Lighter charcoal borders for nodes */
+  
+  --bg-translucent: rgba(0,0,0,0.05);
+  --bg-translucent-strong: rgba(0,0,0,0.1);
+  --bg-node-translucent: rgba(255, 252, 242, 0.05);
+  --bg-node-translucent-strong: rgba(255, 252, 242, 0.1);
+  
+  /* Rust Orange Accent */
+  --accent-primary: #EB5E28;
+  --accent-primary-glow: rgba(235, 94, 40, 0.25);
+  
+  /* Deep Black Secondary */
+  --accent-secondary: #252422;
+  
+  /* Match Colors */
+  --color-matched: #22c55e; /* Vibrant Green for simulation path */
+  --color-matched-glow: rgba(34, 197, 94, 0.4);
+  
+  /* Status Colors */
+  --status-critical: #EB5E28;
+  --status-critical-glow: rgba(235, 94, 40, 0.2);
+  --status-warning: #D4A24C;
+  --status-info: #4E8FD1;
+  --status-success: #3FA66B;
+  
+  /* Typography */
+  --text-main: #252422; /* Text on cream panels */
+  --text-muted: #5A5652;
+  
+  --text-node: #FFFCF2; /* Cream text on charcoal nodes */
+  --text-node-muted: #CCC5B9;
+  
+  --font-sans: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at 50% 0%, var(--bg-space), var(--bg-space-dark) 80%);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Glassmorphism Panel Utilities */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-panel-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+
+/* Node Custom Styling */
+.node-card {
+  background: var(--bg-surface);
+  color: var(--text-node);
+  backdrop-filter: blur(8px);
+  border: 2px solid var(--bg-node-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.node-card.matched {
+  border-color: var(--color-matched);
+  border-width: 3px;
+  box-shadow: 0 0 35px var(--color-matched-glow);
+  transform: translateY(-2px);
+}
+
+.node-header {
+  background: var(--bg-node-translucent-strong);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--bg-node-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.node-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-node-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.node-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.badge-continue {
+  background: var(--bg-node-translucent-strong);
+  color: var(--text-node);
+}
+
+.node-body {
+  padding: 12px;
+}
+
+.chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg-node-translucent);
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--bg-node-border);
+  color: var(--text-node);
+  margin-bottom: 8px;
+  margin-right: 8px;
+  word-break: break-all;
+}
+
+.receiver-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  background: var(--accent-primary);
+  color: #FFFCF2;
+  padding: 12px 18px;
+  border-radius: 8px;
+  margin-top: 12px;
+  box-shadow: 0 6px 16px var(--accent-primary-glow);
+}
+
+.receiver-name {
+  font-weight: 800;
+  font-size: 16px;
+  color: #FFFCF2;
+  letter-spacing: 0.5px;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0% { opacity: 0.6; stroke-width: 3; }
+  50% { opacity: 1; stroke-width: 6; stroke: var(--color-matched); }
+  100% { opacity: 0.6; stroke-width: 3; }
+}
+
+.animated-edge path {
+  animation: pulseGlow 1.5s infinite;
+}
+
+/* Button overrides */
+button {
+  transition: all 0.2s ease;
+}
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
