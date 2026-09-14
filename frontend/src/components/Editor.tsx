@@ -9,7 +9,7 @@ interface EditorProps {
   theme?: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ value, onChange, errors, jumpTarget, theme = 'dark' }) => {
+const Editor: React.FC<EditorProps> = ({ value, onChange, jumpTarget, theme = 'dark' }) => {
   const editorRef = useRef<any>(null);
 
   const handleEditorDidMount = (editor: any) => {

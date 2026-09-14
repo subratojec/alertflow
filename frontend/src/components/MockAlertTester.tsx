@@ -8,7 +8,18 @@ interface MockAlertTesterProps {
 
 const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate }) => {
   const [alerts, setAlerts] = useState([
-    [{ key: 'alertname', value: 'HighErrorRate' }, { key: 'severity', value: 'critical' }]
+    [
+      { key: 'alertname', value: 'HighErrorRate' }, 
+      { key: 'severity', value: 'critical' },
+      { key: 'service', value: 'database' },
+      { key: 'cluster', value: 'prod' }
+    ],
+    [
+      { key: 'alertname', value: 'HighErrorRate' }, 
+      { key: 'severity', value: 'warning' },
+      { key: 'service', value: 'database' },
+      { key: 'cluster', value: 'prod' }
+    ]
   ]);
   const [mockTime, setMockTime] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -97,7 +108,7 @@ const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate })
   const result = resultData?.results ? resultData.results[selectedResultIdx] : null;
 
   return (
-    <div className="glass-panel" style={{ width: '420px', maxWidth: '100%', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 48px)', overflow: 'hidden' }}>
+    <div className="glass-panel" style={{ width: '420px', maxWidth: '100%', display: 'flex', flexDirection: 'column', maxHeight: '100%', overflow: 'hidden' }}>
       <div style={{ padding: '20px', borderBottom: '1px solid var(--bg-panel-border)', flexShrink: 0 }}>
         <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
            <AlertTriangle size={18} style={{ color: 'var(--accent-primary)' }} />

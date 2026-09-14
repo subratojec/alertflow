@@ -1,11 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Visualizer from './components/Visualizer';
 import Editor from './components/Editor';
 import MockAlertTester from './components/MockAlertTester';
-import { Layers, Moon, Sun, GripVertical } from 'lucide-react';
+const DEMO_CONFIG = `global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'team-operations-pager'
+  routes:
+  - matchers:
+    - severity="critical"
+    receiver: 'team-operations-pager'
+    routes:
+    - matchers:
+      - service="database"
+      receiver: 'team-db-pager'
+      mute_time_intervals:
+      - weekend-maintenance
+  - matchers:
+    - severity="warning"
+    receiver: 'team-operations-slack'
+
+inhibit_rules:
+- source_matchers:
+  - severity="critical"
+  target_matchers:
+  - severity="warning"
+  equal: ['alertname', 'cluster', 'service']
+
+receivers:
+- name: 'team-operations-pager'
+- name: 'team-operations-slack'
+- name: 'team-db-pager'
+
+time_intervals:
+- name: weekend-maintenance
+  time_intervals:
+  - weekdays: ['saturday', 'sunday']
+`;
 
 const App = () => {
-  const [config, setConfig] = useState<string>('');
+  const [config, setConfig] = useState<string>(DEMO_CONFIG);
   const [treeData, setTreeData] = useState<any>(null);
   const [simulationData, setSimulationData] = useState<any>(null);
   const [errors, setErrors] = useState<any[]>([]);
@@ -159,7 +198,7 @@ const App = () => {
           <Visualizer data={treeData} simulation={simulationData} onNodeClick={handleNodeClick} />
           
           {/* Floating Mock Tester Panel */}
-          <div style={{ position: 'absolute', top: '24px', right: '24px', maxWidth: 'calc(100% - 48px)', zIndex: 20 }}>
+          <div style={{ position: 'absolute', top: '24px', bottom: '24px', right: '24px', maxWidth: 'calc(100% - 48px)', zIndex: 20 }}>
             <MockAlertTester config={config} onSimulate={setSimulationData} />
           </div>
         </div>
