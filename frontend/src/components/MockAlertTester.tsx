@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Trash2, Plus, Clock } from 'lucide-react';
+import { AlertTriangle, Trash2, Plus, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface MockAlertTesterProps {
   config: string;
@@ -26,6 +26,7 @@ const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate })
   const [resultData, setResultData] = useState<any>(null);
   const [selectedResultIdx, setSelectedResultIdx] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const addAlert = () => setAlerts([...alerts, [{ key: '', value: '' }]]);
   const removeAlert = (idx: number) => {
@@ -110,13 +111,20 @@ const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate })
 
   return (
     <div className="glass-panel" style={{ width: '420px', maxWidth: '100%', display: 'flex', flexDirection: 'column', maxHeight: '100%', overflow: 'hidden' }}>
-      <div style={{ padding: '20px', borderBottom: '1px solid var(--bg-panel-border)', flexShrink: 0 }}>
+      <div style={{ padding: '20px', borderBottom: isMinimized ? 'none' : '1px solid var(--bg-panel-border)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
            <AlertTriangle size={18} style={{ color: 'var(--accent-primary)' }} />
            Mock Alert Tester
         </h2>
+        <button 
+          onClick={() => setIsMinimized(!isMinimized)}
+          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '4px' }}
+        >
+           {isMinimized ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+        </button>
       </div>
 
+      {!isMinimized && (
       <div style={{ padding: '20px', flex: 1, overflowY: 'auto', background: 'var(--bg-panel)' }}>
         
         <div style={{ marginBottom: '20px', background: '#F8F9FA', padding: '16px', borderRadius: '8px', border: '1px solid #E9ECEF' }}>
@@ -261,6 +269,7 @@ const MockAlertTester: React.FC<MockAlertTesterProps> = ({ config, onSimulate })
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };
