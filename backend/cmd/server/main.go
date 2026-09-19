@@ -1,13 +1,18 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 
 	"github.com/alertflow/backend/pkg/engine"
 )
+
+//go:embed ui/*
+var uiFS embed.FS
 
 var eng = engine.NewEngine()
 
@@ -78,9 +83,18 @@ func simulateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/validate", corsMiddleware(validateHandler))
-	http.HandleFunc("/tree", corsMiddleware(treeHandler))
-	http.HandleFunc("/simulate", corsMiddleware(simulateHandler))
+	http.HandleFunc("/api/validate", corsMiddleware(validateHandler))
+	http.HandleFunc("/api/tree", corsMiddleware(treeHandler))
+	http.HandleFunc("/api/simulate", corsMiddleware(simulateHandler))
+
+	// Extract the "ui" directory from the embed.FS
+	subFS, err := fs.Sub(uiFS, "ui")
+	if err != nil {
+		log.Fatal("Failed to extract sub filesystem: ", err)
+	}
+
+	// Serve the static frontend
+	http.Handle("/", http.FileServer(http.FS(subFS)))
 
 	log.Println("Server listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

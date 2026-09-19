@@ -21,15 +21,13 @@ Existing tools either just check your YAML syntax or provide outdated UIs that i
 
 AlertFlow is distributed via Docker with heavily optimized, multi-stage builds. You don't need Go or Node.js installed to run it.
 
-```bash
-# Clone the repository
-git clone https://github.com/subratojec/alertflow.git
-cd alertflow
+The absolute easiest way to run AlertFlow is by pulling our single unified Docker image:
 
-# Boot the frontend and backend instantly in the background
-docker-compose up -d --build
+```bash
+docker run -d -p 8080:8080 ghcr.io/subratojec/alertflow:latest
 ```
-> Open your browser to **[http://localhost:5173](http://localhost:5173)**. A complex demo configuration will be pre-loaded so you can see it in action immediately!
+
+> Open your browser to **[http://localhost:8080](http://localhost:8080)**. A complex demo configuration will be pre-loaded so you can see it in action immediately!
 
 ---
 
