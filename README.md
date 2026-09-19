@@ -58,4 +58,9 @@ alertflow diff old.yml new.yml --alerts sample-alerts.json
 ## Architecture
 - **Backend**: Go (using `github.com/prometheus/alertmanager/config` and `dispatch`)
 - **Frontend**: React + Vite (using `reactflow` for rendering)
-- **Deployment**: Docker Compose (Multi-stage Alpine/Nginx images)
+- **Deployment**: Single unified Docker image (React frontend embedded natively in the Go binary)
+
+---
+
+## 🗺️ Roadmap
+Curious about what features are coming next? **[Check out our official Roadmap on the GitHub Wiki!](https://github.com/subratojec/alertflow/wiki/Roadmap)**
