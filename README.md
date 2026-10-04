@@ -39,7 +39,10 @@ Alertmanager allows high-priority alerts to suppress low-priority alerts via `in
 ### 2. Time-Travel Mute Testing
 Using the Datetime picker in the Mock Alert Tester, you can simulate alerts firing during specific hours. AlertFlow will evaluate your `mute_time_intervals` and `active_time_intervals`, highlighting muted routes in **ORANGE**.
 
-### 3. CI/CD Pipeline Integration (The CLI)
+### 3. Shareable Config Links & Image Exports
+Generate highly compressed URLs of your exact YAML layout to easily share configurations with teammates. You can also export the visual routing tree to a high-res PNG graph with a single click.
+
+### 4. CI/CD Pipeline Integration (The CLI)
 You can run AlertFlow in your terminal or GitHub Actions pipeline to catch regressions *before* they merge.
 
 **Validate Syntax:**
