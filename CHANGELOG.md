@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - GitHub Actions CI workflow (`ci.yml`) to automatically test Go backend and build React frontend.
+- Added **Shareable Config Links**: You can now generate a shareable URL that securely encodes the current YAML configuration using `lz-string` compression.
+- Added **Export Tree to Image**: You can now export the visual routing tree graph as a high-quality PNG image with a single click.
 
 ### Fixed
 - Fixed timezone parsing issue in Alertmanager configs by adding `tzdata` to the final Alpine Docker image (Resolves #2).
