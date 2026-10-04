@@ -2,8 +2,9 @@ import React, { useMemo, useState } from 'react';
 import ReactFlow, { Background, Controls, MarkerType, Handle, Position, MiniMap } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import dagre from 'dagre';
-import { PlusCircle, MinusCircle, ShieldAlert, GitMerge } from 'lucide-react';
+import { PlusCircle, MinusCircle, ShieldAlert, GitMerge, Download } from 'lucide-react';
 import 'reactflow/dist/style.css';
+import { toPng } from 'html-to-image';
 
 interface VisualizerProps {
   data: any;
@@ -189,6 +190,23 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
     return getLayoutedElements(ns, es);
   }, [data, simulation, collapsedNodes, onNodeClick]);
 
+  const handleDownload = () => {
+    const flowElement = document.querySelector('.react-flow') as HTMLElement;
+    if (!flowElement) return;
+
+    toPng(flowElement, { backgroundColor: '#0f172a' })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = 'alert-routing-tree.png';
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((err) => {
+        console.error('Failed to export image', err);
+        alert('Failed to export image.');
+      });
+  };
+
   if (!data) {
     return (
       <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
@@ -202,7 +220,34 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
   }
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
+    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+      <button 
+        onClick={handleDownload}
+        style={{
+          position: 'absolute',
+          top: '24px',
+          left: '24px',
+          zIndex: 5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'var(--bg-panel)',
+          border: '1px solid var(--bg-panel-border)',
+          color: 'var(--text-main)',
+          padding: '8px 16px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontSize: '13px',
+          fontWeight: 500,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+          transition: 'background 0.2s'
+        }}
+        onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+        onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
+      >
+        <Download size={16} />
+        Export Image
+      </button>
       <ReactFlow 
         nodes={nodes} 
         edges={edges} 

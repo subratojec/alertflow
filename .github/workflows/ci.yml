@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "release/**" ]
+  pull_request:
+    branches: [ "main", "release/**" ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: backend/go.sum
+          
+      - name: Run Go Tests
+        working-directory: ./backend
+        run: go test -v ./...
+        
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build

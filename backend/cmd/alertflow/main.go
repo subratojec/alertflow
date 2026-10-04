@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	_ "time/tzdata"
 
 	"github.com/spf13/cobra"
 	"github.com/alertflow/backend/pkg/engine"

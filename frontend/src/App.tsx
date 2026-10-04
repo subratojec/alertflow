@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import { Share2, Check } from 'lucide-react';
 import Visualizer from './components/Visualizer';
 import Editor from './components/Editor';
 import MockAlertTester from './components/MockAlertTester';
@@ -49,7 +51,19 @@ time_intervals:
 `;
 
 const App = () => {
-  const [config, setConfig] = useState<string>(DEMO_CONFIG);
+  const [config, setConfig] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shared = params.get('config');
+    if (shared) {
+      try {
+        return decompressFromEncodedURIComponent(shared) || DEMO_CONFIG;
+      } catch (e) {
+        return DEMO_CONFIG;
+      }
+    }
+    return DEMO_CONFIG;
+  });
+  const [isCopied, setIsCopied] = useState(false);
   const [treeData, setTreeData] = useState<Record<string, any> | null>(null);
   const [simulationData, setSimulationData] = useState<Record<string, any> | null>(null);
   const [errors, setErrors] = useState<Message[]>([]);
@@ -169,6 +183,35 @@ const App = () => {
           </div>
         )}
         
+        <button 
+          onClick={() => {
+            const compressed = compressToEncodedURIComponent(config);
+            const url = `${window.location.origin}${window.location.pathname}?config=${compressed}`;
+            navigator.clipboard.writeText(url);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+          }}
+          style={{
+            marginLeft: redacted ? '12px' : 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--bg-panel-border)',
+            color: 'var(--text-main)',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            transition: 'all 0.2s ease'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+        >
+          {isCopied ? <Check size={16} color="var(--status-success)" /> : <Share2 size={16} />}
+          {isCopied ? 'Copied!' : 'Share Config'}
+        </button>
 
       </header>
 

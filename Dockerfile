@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o alertflow-server ./cmd/server/main.go
 
 # Stage 3: Runner
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /root/
 COPY --from=backend-builder /app/alertflow-server .
 EXPOSE 8080

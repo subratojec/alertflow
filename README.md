@@ -62,5 +62,5 @@ alertflow diff old.yml new.yml --alerts sample-alerts.json
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 Curious about what features are coming next? **[Check out our official Roadmap on the GitHub Wiki!](https://github.com/subratojec/alertflow/wiki/Roadmap)**
