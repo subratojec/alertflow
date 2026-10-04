@@ -27,6 +27,26 @@ receivers:
 	if assert.Len(t, res.Warnings, 1) {
 		assert.Contains(t, res.Warnings[0].Message, "team-Y")
 	}
+
+	yamlContentTimezone := `
+route:
+  receiver: 'team-X'
+receivers:
+  - name: 'team-X'
+mute_time_intervals:
+  - name: night-shift
+    time_intervals:
+      - times:
+          - start_time: '23:00'
+            end_time: '23:59'
+        location: 'Asia/Kolkata'
+`
+	resTZ, errTZ := eng.Validate(yamlContentTimezone)
+	assert.NoError(t, errTZ)
+	if !resTZ.Valid {
+		t.Fatalf("Validation failed with timezone: %v", resTZ.Errors)
+	}
+	assert.True(t, resTZ.Valid)
 }
 
 func TestEngineSimulate(t *testing.T) {

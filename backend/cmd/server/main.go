@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	_ "time/tzdata"
 
 	"github.com/alertflow/backend/pkg/engine"
 )
