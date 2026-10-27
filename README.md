@@ -2,7 +2,8 @@
 
 **A visual simulator and CI/CD testing engine for Prometheus Alertmanager configurations.**
 
-![AlertFlow Demo](./demo.png)
+<img width="1920" height="942" alt="image" src="https://github.com/user-attachments/assets/24cc702c-ce22-403d-92f4-d42940dd3a2a" />
+
 
 ## The Problem
 Configuring Prometheus Alertmanager is notoriously difficult. With complex routing trees, nested matchers, `continue` directives, time-based mutes, and inhibition rules, it is almost impossible to know exactly where an alert will go until it fires in production at 3 AM. 
