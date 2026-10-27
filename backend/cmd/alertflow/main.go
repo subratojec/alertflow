@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 	_ "time/tzdata"
 
-	"github.com/spf13/cobra"
 	"github.com/alertflow/backend/pkg/engine"
+	"github.com/spf13/cobra"
 )
 
 var eng = engine.NewEngine()
@@ -138,11 +139,116 @@ var diffCmd = &cobra.Command{
 	},
 }
 
+var mermaidCmd = &cobra.Command{
+	Use:   "mermaid [config.yml]",
+	Short: "Export routing tree as Mermaid flowchart TD",
+	Long:  "Export routing trees directly as Mermaid Markdown format (flowchart TD) for embedding into GitHub/GitLab pull requests, runbooks, and RFCs.",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		content, err := os.ReadFile(args[0])
+		if err != nil {
+			fmt.Printf("Error reading file: %v\n", err)
+			os.Exit(1)
+		}
+
+		markdown, _ := cmd.Flags().GetBool("markdown")
+		outputFile, _ := cmd.Flags().GetString("output")
+		alertsFile, _ := cmd.Flags().GetString("alerts")
+
+		var res string
+		if alertsFile != "" {
+			alertsData, err := os.ReadFile(alertsFile)
+			if err != nil {
+				fmt.Printf("Error reading alerts file: %v\n", err)
+				os.Exit(1)
+			}
+			var sampleAlerts []map[string]string
+			if err := json.Unmarshal(alertsData, &sampleAlerts); err != nil {
+				fmt.Printf("Error parsing alerts JSON: %v\n", err)
+				os.Exit(1)
+			}
+
+			tree, err := eng.BuildTree(string(content))
+			if err != nil {
+				fmt.Printf("Error building routing tree: %v\n", err)
+				os.Exit(1)
+			}
+
+			simRes, err := eng.Simulate(engine.SimulateRequest{
+				Config: string(content),
+				Alerts: sampleAlerts,
+			})
+			if err != nil {
+				fmt.Printf("Error simulating alerts: %v\n", err)
+				os.Exit(1)
+			}
+
+			var sb strings.Builder
+			for i, r := range simRes.Results {
+				diagram := eng.ToMermaidSimulation(tree, &r)
+				if markdown {
+					sb.WriteString(fmt.Sprintf("### Simulation: Alert %d\n```mermaid\n%s```\n\n", i+1, diagram))
+				} else {
+					sb.WriteString(diagram)
+					sb.WriteString("\n")
+				}
+			}
+			res = sb.String()
+		} else {
+			if markdown {
+				res, err = eng.ExportMermaidMarkdown(string(content))
+			} else {
+				res, err = eng.ExportMermaid(string(content))
+			}
+			if err != nil {
+				fmt.Printf("Error generating Mermaid diagram: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(res), 0644); err != nil {
+				fmt.Printf("Error writing to output file: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Printf("Successfully exported Mermaid diagram to %s\n", outputFile)
+		} else {
+			fmt.Print(res)
+		}
+	},
+}
+
+var exportCmd = &cobra.Command{
+	Use:   "export [config.yml]",
+	Short: "Export routing tree to various diagram formats",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		format, _ := cmd.Flags().GetString("format")
+		if format != "mermaid" {
+			fmt.Printf("Unsupported format %q. Supported formats: mermaid\n", format)
+			os.Exit(1)
+		}
+		mermaidCmd.Run(cmd, args)
+	},
+}
+
 func init() {
 	checkCmd.Flags().Bool("fail-on-warning", false, "Exit with code 2 if warnings are found")
 	diffCmd.Flags().String("alerts", "", "Path to sample alerts JSON file")
+
+	mermaidCmd.Flags().BoolP("markdown", "m", false, "Wrap output in Markdown code block (```mermaid ... ```)")
+	mermaidCmd.Flags().StringP("output", "o", "", "Write diagram output to file instead of stdout")
+	mermaidCmd.Flags().String("alerts", "", "Path to sample alerts JSON file to export simulation flow diagram")
+
+	exportCmd.Flags().StringP("format", "f", "mermaid", "Export format (currently supports 'mermaid')")
+	exportCmd.Flags().BoolP("markdown", "m", false, "Wrap output in Markdown code block (```mermaid ... ```)")
+	exportCmd.Flags().StringP("output", "o", "", "Write diagram output to file instead of stdout")
+	exportCmd.Flags().String("alerts", "", "Path to sample alerts JSON file to export simulation flow diagram")
+
 	rootCmd.AddCommand(checkCmd)
 	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(mermaidCmd)
+	rootCmd.AddCommand(exportCmd)
 }
 
 func main() {

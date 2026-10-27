@@ -64,6 +64,30 @@ func treeHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+func mermaidHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	diagram, err := eng.ExportMermaid(string(body))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	markdown, _ := eng.ExportMermaidMarkdown(string(body))
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"mermaid":  diagram,
+		"markdown": markdown,
+	})
+}
+
 func simulateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -86,6 +110,7 @@ func simulateHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/api/validate", corsMiddleware(validateHandler))
 	http.HandleFunc("/api/tree", corsMiddleware(treeHandler))
+	http.HandleFunc("/api/mermaid", corsMiddleware(mermaidHandler))
 	http.HandleFunc("/api/simulate", corsMiddleware(simulateHandler))
 
 	// Extract the "ui" directory from the embed.FS

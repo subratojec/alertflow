@@ -39,8 +39,10 @@ Alertmanager allows high-priority alerts to suppress low-priority alerts via `in
 ### 2. Time-Travel Mute Testing
 Using the Datetime picker in the Mock Alert Tester, you can simulate alerts firing during specific hours. AlertFlow will evaluate your `mute_time_intervals` and `active_time_intervals`, highlighting muted routes in **ORANGE**.
 
-### 3. Shareable Config Links & Image Exports
-Generate highly compressed URLs of your exact YAML layout to easily share configurations with teammates. You can also export the visual routing tree to a high-res PNG graph with a single click.
+### 3. Shareable Config Links & Diagram Exports (PNG & Mermaid.js)
+- **Shareable Links**: Generate highly compressed URLs of your exact YAML layout to easily share configurations with teammates.
+- **Image Export**: Export the visual routing tree to a high-res PNG graph with a single click.
+- **Mermaid.js Diagram Export**: Export routing trees directly as native Mermaid Markdown (`flowchart TD`). Embed live, theme-adaptive routing diagrams directly into GitHub/GitLab pull requests, runbooks, and RFCs without needing to host or upload static image files.
 
 ### 4. CI/CD Pipeline Integration (The CLI)
 You can run AlertFlow in your terminal or GitHub Actions pipeline to catch regressions *before* they merge.
@@ -48,6 +50,18 @@ You can run AlertFlow in your terminal or GitHub Actions pipeline to catch regre
 **Validate Syntax:**
 ```bash
 alertflow check alertmanager.yml
+```
+
+**Export Mermaid Diagram for PRs and Runbooks:**
+```bash
+# Output raw Mermaid flowchart TD
+alertflow mermaid alertmanager.yml
+
+# Output wrapped in a GitHub/GitLab markdown block (```mermaid ... ```)
+alertflow mermaid alertmanager.yml --markdown
+
+# Save to a file
+alertflow mermaid alertmanager.yml -o routing.mmd
 ```
 
 **Prevent Regressions:**

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Mermaid.js Diagram Export**: Export routing trees directly as Mermaid Markdown format (`flowchart TD`). Allows teams to embed live, native routing diagrams into GitHub/GitLab pull requests, runbooks, and RFCs without needing to host or upload static image files.
+  - **Web UI**: Added an "Export Mermaid" button and modal dialog in the Visualizer with Markdown/Raw toggle, live diagram preview, 1-click clipboard copy, and `.md`/`.mmd` file download.
+  - **CLI**: Added `alertflow mermaid [config.yml]` and `alertflow export [config.yml] --format mermaid` commands with `--markdown` (`-m`) and `--output` (`-o`) flags for CI/CD automation and GitHub Actions PR bots.
+  - **Go Engine & Server API**: Added `ToMermaid`, `ToMermaidMarkdown`, `ExportMermaid`, and `ExportMermaidMarkdown` methods to `pkg/engine` alongside a new `/api/mermaid` REST endpoint.
+
 ## [0.1.0] - 2026-10-04
 
 ### Added
