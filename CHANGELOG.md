@@ -5,13 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-10-28
 
 ### Added
-- **Mermaid.js Diagram Export**: Export routing trees directly as Mermaid Markdown format (`flowchart TD`). Allows teams to embed live, native routing diagrams into GitHub/GitLab pull requests, runbooks, and RFCs without needing to host or upload static image files.
-  - **Web UI**: Added an "Export Mermaid" button and modal dialog in the Visualizer with Markdown/Raw toggle, live diagram preview, 1-click clipboard copy, and `.md`/`.mmd` file download.
-  - **CLI**: Added `alertflow mermaid [config.yml]` and `alertflow export [config.yml] --format mermaid` commands with `--markdown` (`-m`) and `--output` (`-o`) flags for CI/CD automation and GitHub Actions PR bots.
-  - **Go Engine & Server API**: Added `ToMermaid`, `ToMermaidMarkdown`, `ExportMermaid`, and `ExportMermaidMarkdown` methods to `pkg/engine` alongside a new `/api/mermaid` REST endpoint.
+- **Mermaid.js Diagram Export**: Export native, theme-adaptive Mermaid Markdown diagrams (`flowchart TD`) for GitHub/GitLab pull requests, runbooks, and architectural RFCs without hosting or uploading static image files.
+  - **Routing Architecture Diagrams**: Renders complete route trees with branching matcher logic directly annotated on edges, and dedicated styled receiver endpoints.
+  - **Live Simulation Flow Diagrams**: Visualizes active dispatch paths with vibrant green vectors, `[TERMINAL MATCH]` designations, and red `[INHIBITED]` badges indicating active alert suppression.
+  - **Web UI Modal**: Added an interactive "Export Mermaid" modal dialog in the Visualizer with Architecture vs. Simulation flow toggles, Markdown/Raw tabs, live syntax preview, 1-click clipboard copy, and `.md`/`.mmd` file downloads.
+  - **CLI Support**: Added `alertflow mermaid [config.yml]` and `alertflow export [config.yml] --format mermaid` commands with `--markdown` (`-m`), `--output` (`-o`), and `--alerts` (`-a`) flags for CI/CD pipeline automation and PR bots.
+  - **Go Engine & REST API**: Added `ToMermaid`, `ToMermaidMarkdown`, `ToMermaidSimulation`, and `ToMermaidSimulationMarkdown` to `pkg/engine`, backed by a new `POST /api/mermaid` endpoint.
+- **Informatory Website (`website/`)**:
+  - Small, high-performance, responsive landing page with zero external CSS/JS dependencies.
+  - Clean typography and deep charcoal palette with rust orange and emerald green accents.
+  - Interactive feature walkthroughs, problem-vs-solution comparisons, and live screenshot mockups.
+  - Smooth hover zoom magnification and high-resolution Lightbox modal for clear previewing.
 
 ## [0.1.0] - 2026-10-04
 
