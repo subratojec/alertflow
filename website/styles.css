@@ -277,10 +277,13 @@ body {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-secondary);
+  max-width: 100%;
 }
 
 .docker-pill code {
   color: var(--accent-rust);
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 .copy-btn {
@@ -953,6 +956,299 @@ body {
 }
 
 /* ==========================================================================
-   Responsive Breakpoints
+   Mobile-Oriented & Responsive Design Breakpoints
    ========================================================================== */
-@media (max-width: 960px) {\n  .hero h1 { font-size: 40px; }\n  .features-grid { grid-template-columns: repeat(2, 1fr); }\n  .feature-showcase-row,\n  .feature-showcase-row.reverse {\n    grid-template-columns: 1fr;\n    gap: 32px;\n  }\n  .feature-showcase-row.reverse .showcase-text { order: 1; }\n  .feature-showcase-row.reverse .showcase-visual { order: 2; }\n  .comparison-grid { grid-template-columns: 1fr; }\n}\n\n@media (max-width: 640px) {\n  .hero h1 { font-size: 32px; }\n  .nav-links { display: none; }\n  .features-grid { grid-template-columns: 1fr; }\n  .quickstart-command { font-size: 13px; padding: 10px 14px; }\n}\n
+
+/* Tablets & Small Desktops (<= 992px) */
+@media (max-width: 992px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .hero {
+    padding: 60px 0 40px;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+    letter-spacing: -0.8px;
+  }
+
+  .hero p.lead {
+    font-size: 16px;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .feature-showcase-row,
+  .feature-showcase-row.reverse {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    margin-bottom: 56px;
+  }
+
+  .feature-showcase-row.reverse .showcase-text {
+    order: 1;
+  }
+
+  .feature-showcase-row.reverse .showcase-visual {
+    order: 2;
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .window-mockup {
+    margin-top: 24px;
+  }
+}
+
+/* Tablets & Mobile Landscape (<= 768px) */
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 0;
+  }
+
+  .section-header {
+    margin-bottom: 36px;
+  }
+
+  .section-title {
+    font-size: 28px;
+  }
+
+  .section-desc {
+    font-size: 15px;
+  }
+
+  .showcase-title {
+    font-size: 24px;
+  }
+
+  .quickstart-box {
+    padding: 36px 20px;
+  }
+
+  .quickstart-box h2 {
+    font-size: 26px;
+  }
+
+  .quickstart-command {
+    font-size: 13px;
+    padding: 12px 16px;
+    gap: 10px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .quickstart-command span.cmd-text {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .window-header {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .window-title {
+    font-size: 11px;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .window-tabs {
+    gap: 4px;
+  }
+
+  .mockup-tab {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
+/* Mobile Phones (<= 640px) */
+@media (max-width: 640px) {
+  .navbar {
+    padding: 12px 0;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .logo-title {
+    font-size: 18px;
+  }
+
+  .logo-badge {
+    display: none;
+  }
+
+  .nav-cta .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .hero {
+    padding: 40px 0 28px;
+  }
+
+  .hero-tag {
+    font-size: 11px;
+    padding: 5px 10px;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+
+  .hero p.lead {
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 24px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+
+  .docker-pill {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 14px;
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .docker-pill span:first-child {
+    display: none;
+  }
+
+  .docker-pill code {
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .feature-card {
+    padding: 22px 18px;
+  }
+
+  .comparison-card {
+    padding: 24px 18px;
+  }
+
+  .comparison-card .card-header-icon span {
+    font-size: 18px;
+  }
+
+  .card-list li {
+    font-size: 14px;
+  }
+
+  .showcase-desc {
+    font-size: 14px;
+  }
+
+  .showcase-highlights li {
+    font-size: 13px;
+  }
+
+  .code-box pre {
+    padding: 14px;
+    font-size: 12px;
+  }
+
+  /* Touch & Mobile Lightbox */
+  .lightbox-overlay {
+    padding: 12px;
+  }
+
+  .lightbox-close {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    width: 42px;
+    height: 42px;
+    background: rgba(22, 21, 20, 0.95);
+    border: 1px solid rgba(255, 252, 242, 0.25);
+    z-index: 10001;
+  }
+
+  .lightbox-content img {
+    max-height: 78vh;
+    border-radius: var(--radius-sm);
+  }
+
+  .lightbox-caption {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  /* Touch Zoom Badge: visible on mobile so users know they can tap */
+  .zoom-hint {
+    opacity: 0.9;
+    transform: translateY(0);
+    padding: 4px 10px;
+    font-size: 10px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .footer {
+    padding: 36px 0;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+}
+
+/* Extra Small Phones (<= 380px) */
+@media (max-width: 380px) {
+  .hero h1 {
+    font-size: 24px;
+  }
+
+  .section-title {
+    font-size: 22px;
+  }
+
+  .showcase-title {
+    font-size: 20px;
+  }
+}
+
