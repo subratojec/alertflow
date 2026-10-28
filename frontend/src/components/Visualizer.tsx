@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import ReactFlow, { Background, Controls, MarkerType, Handle, Position, MiniMap } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import dagre from 'dagre';
-import { PlusCircle, MinusCircle, ShieldAlert, GitMerge, Download } from 'lucide-react';
+import { PlusCircle, MinusCircle, ShieldAlert, GitMerge, Download, FileCode } from 'lucide-react';
 import 'reactflow/dist/style.css';
 import { toPng } from 'html-to-image';
+import MermaidExportModal from './MermaidExportModal';
 
 interface VisualizerProps {
   data: any;
@@ -122,6 +123,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 
 const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }) => {
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
+  const [showMermaidModal, setShowMermaidModal] = useState(false);
 
   const toggleCollapse = (id: string) => {
     setCollapsedNodes(prev => {
@@ -221,33 +223,65 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      <button 
-        onClick={handleDownload}
+      <div 
         style={{
           position: 'absolute',
           top: '24px',
           left: '24px',
           zIndex: 5,
           display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--bg-panel-border)',
-          color: 'var(--text-main)',
-          padding: '8px 16px',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '13px',
-          fontWeight: 500,
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
-          transition: 'background 0.2s'
+          gap: '8px',
         }}
-        onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
-        onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
       >
-        <Download size={16} />
-        Export Image
-      </button>
+        <button 
+          onClick={handleDownload}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--bg-panel-border)',
+            color: 'var(--text-main)',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
+        >
+          <Download size={16} />
+          Export Image
+        </button>
+
+        <button 
+          onClick={() => setShowMermaidModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--bg-panel-border)',
+            color: 'var(--text-main)',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-surface)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-panel)'}
+        >
+          <FileCode size={16} />
+          Export Mermaid
+        </button>
+      </div>
+
       <ReactFlow 
         nodes={nodes} 
         edges={edges} 
@@ -269,6 +303,13 @@ const Visualizer: React.FC<VisualizerProps> = ({ data, simulation, onNodeClick }
           style={{ background: 'var(--bg-panel)', border: '1px solid var(--bg-panel-border)', borderRadius: '8px' }}
         />
       </ReactFlow>
+
+      <MermaidExportModal
+        isOpen={showMermaidModal}
+        onClose={() => setShowMermaidModal(false)}
+        treeData={data}
+        simulation={simulation}
+      />
     </div>
   );
 };
